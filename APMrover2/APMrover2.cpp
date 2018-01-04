@@ -440,7 +440,7 @@ void Rover::obter_bearing_correto(void)
 
     if (mission.num_commands() > 0 && gps.status() >= AP_GPS::GPS_OK_FIX_3D) // Se ha missao alem do home
     {
-        int contador = 1; // Pula o 0, que eh o HOME
+        int contador = 2; // Pula o 0, que eh o HOME, e 1 que e o takeoff no linux e qgroundcontrol (assim imagino)
         estamos_dentro = false;
         while (!estamos_dentro && contador <= mission.num_commands()) // Enquanto nao encontramos algum ponto que estejamos muito proximos dentre todos
         {
