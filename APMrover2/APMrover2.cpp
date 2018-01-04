@@ -44,6 +44,8 @@ Rover rover;
 */
 const AP_Scheduler::Task Rover::scheduler_tasks[] = {
     //         Function name,          Hz,     us,
+    SCHED_TASK(obter_bearing_correto,  50,   6400),
+    SCHED_TASK(enviando_dados_relevantes, 50,  6400),
     SCHED_TASK(read_radio,             50,   1000),
     SCHED_TASK(ahrs_update,            50,   6400),
     SCHED_TASK(read_rangefinders,      50,   2000),
@@ -269,8 +271,7 @@ void Rover::update_logging1(void)
 void Rover::update_logging2(void)
 {
     if (should_log(MASK_LOG_STEERING)) {
-        Log_Write_Steering();
-    }
+        Log_Write_Steering();    }
 
     if (should_log(MASK_LOG_RC)) {
         Log_Write_RC();
@@ -403,3 +404,120 @@ void Rover::update_current_mode(void)
 }
 
 AP_HAL_MAIN_CALLBACKS(&rover);
+
+// VINICIUS - orientacao durante navegacao
+void Rover::enviando_dados_relevantes()
+{
+    // Forcando mensagens de interesse no loop mais rapido
+    gcs().send_message(MSG_VFR_HUD);
+//    gcs_chan[0].send_message(MSG_NAV_CONTROLLER_OUTPUT);
+//    gcs_chan[0].send_message(MSG_LOCATION);
+}
+
+// VINICIUS
+// Funcao de logica sobre missao, na rotina principal para ser mais rapido. Dados declarados em Rover.h
+void Rover::obter_bearing_correto(void)
+{
+    // -----------------------------
+    // REGIAO DE CONTROLE INDEPENDENTE DE MISSAO AUTONOMA, COM RAIOS RECEBIDOS PELA GCS -> MAIS ROBUSTO
+    // Dados de orientacao : angulo_atual_gps [RAD]
+    //						 next_navigation_leg_cd [centidegrees]
+    // OBS: cuidado, no roteador, com as unidades dos angulos
+
+    // Inicialmente lemos da bussola, caso aceite a condicao usamos GPS
+    angulo_atual = (float)(ahrs.yaw_sensor % 36000) / 100.0f;
+    angulo_pitch_altura = 0; // Manter horizontal
+    // Condicao de GPS
+    const Vector3f &vel = gps.velocity();
+    if((uint16_t)gps.ground_speed_cm() > (uint16_t)g.vel_min_gps && gps.is_healthy() && gps.status() >= AP_GPS::GPS_OK_FIX_3D){
+        // Eixo X aponta norte positivo, eixo Y aponta leste positivo; norte seria 0 graus, positivo sentido horario
+        angulo_atual = (atan2(vel.y, vel.x) >= 0) ? atan2(vel.y, vel.x) : atan2(vel.y, vel.x)+2*M_PI; // [RAD]
+        angulo_atual = degrees(angulo_atual);
+        //angulo_atual = 2.5f;
+    }
+    // Procurando algum ponto que estejamos dentro
+    AP_Mission::Mission_Command temp_cmd;
+
+    if (mission.num_commands() > 0 && gps.status() >= AP_GPS::GPS_OK_FIX_3D) // Se ha missao alem do home
+    {
+        int contador = 1; // Pula o 0, que eh o HOME
+        estamos_dentro = false;
+        while (!estamos_dentro && contador <= mission.num_commands()) // Enquanto nao encontramos algum ponto que estejamos muito proximos dentre todos
+        {
+            mission.read_cmd_from_storage(contador, temp_cmd);
+            // Cada waypoint deve ter seu raio definido no parametro p1 (primeiro quadrado MISSIOM PLANNER)
+            // 20 por seguranca caso se esqueca disso, para nao ter problema no codigo
+            raio_limite = ((float)(temp_cmd.p1) > 0) ? (float)(temp_cmd.p1) : 20;
+
+            distancia_controlada = get_distance(current_loc, temp_cmd.content.location);
+
+            if (distancia_controlada < raio_limite)
+            {
+                estamos_dentro = true;
+                ponto_alvo = temp_cmd.content.location;
+                indice_wp_buscado = temp_cmd.index;
+                break; // Forca o fim da busca, ja foi encontrado o necessario
+            }
+            contador++;
+        }
+    } else {
+
+        angulo_proximo_wp = angulo_atual * 100.0f; // Aqui faz entao apontar pra frente, por desencargo [centidegrees]
+        angulo_atual = (float)(ahrs.yaw_sensor % 36000) / 100.0f;
+        angulo_pitch_altura = 0; // Manter horizontal
+        //angulo_atual = 2.5f;
+    }
+
+    if (!estamos_dentro)
+    {
+        ponto_alvo = current_loc;
+        angulo_proximo_wp = angulo_atual * 100.0f;
+        angulo_pitch_altura = 0; // Manter horizontal
+    } else { // Aqui entramos no raio de acao, variaveis desejadas atualizadas
+        // A altitude do waypoint esta em centimetros, a altura atual tambem, entao levar a distancia ao waypoint para centimetros antes de tirar tangente
+        angulo_pitch_altura = atan2((float)(temp_cmd.content.location.alt - (float)g.altura_carro), (float)distancia_controlada*100); // Angulo de pitch sobre a altura do poste
+        angulo_proximo_wp = get_bearing_cd(current_loc, ponto_alvo); // Aqui estamos apontando para o waypoint e enviando para o servo
+
+    }
+}
+
+#define PI_FLOAT     3.14159265f
+#define PIBY2_FLOAT  1.5707963f
+// |error| < 0.005
+float Rover::atan2( float y, float x )
+{
+    if ( x == 0.0f )
+    {
+        if ( y > 0.0f ) return PIBY2_FLOAT;
+        if ( y == 0.0f ) return 0.0f;
+        return -PIBY2_FLOAT;
+    }
+    float atan;
+    float z = y/x;
+    if ( fabs( z ) < 1.0f )
+    {
+        atan = z/(1.0f + 0.28f*z*z);
+        if ( x < 0.0f )
+        {
+            if ( y < 0.0f ) return atan - PI_FLOAT;
+            return atan + PI_FLOAT;
+        }
+    }
+    else
+    {
+        atan = PIBY2_FLOAT - z/(z*z + 0.28f);
+        if ( y < 0.0f ) return atan - PI_FLOAT;
+    }
+    return atan;
+}
+
+float Rover::fabs( float z )
+{
+    if (z >= 0){
+        return z;
+    } else {
+        return (-1)*z;
+    }
+
+}
+

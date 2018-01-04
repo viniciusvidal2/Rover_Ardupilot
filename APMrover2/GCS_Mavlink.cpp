@@ -170,9 +170,9 @@ void Rover::send_vfr_hud(mavlink_channel_t chan)
 {
     mavlink_msg_vfr_hud_send(
         chan,
-        gps.ground_speed(),
-        ahrs.groundspeed(),
-        (ahrs.yaw_sensor / 100) % 360,
+        angulo_pitch_altura, // gps.ground_speed(),                          // VINICIUS
+        angulo_atual, // ahrs.groundspeed(),
+        angulo_proximo_wp, // (ahrs.yaw_sensor / 100) % 360,
         g2.motors.get_throttle(),
         current_loc.alt / 100.0f,
         0);

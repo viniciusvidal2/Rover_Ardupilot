@@ -21,61 +21,61 @@
 #include <stdarg.h>
 
 // Libraries
-#include <AP_Common/AP_Common.h>
-#include <AP_HAL/AP_HAL.h>
-#include <AC_PID/AC_P.h>
-#include <AC_PID/AC_PID.h>
-#include <AP_AccelCal/AP_AccelCal.h>                // interface and maths for accelerometer calibration
-#include <AP_ADC/AP_ADC.h>                          // ArduPilot Mega Analog to Digital Converter Library
-#include <AP_AHRS/AP_AHRS.h>                        // ArduPilot Mega DCM Library
-#include <AP_Airspeed/AP_Airspeed.h>                // needed for AHRS build
-#include <AP_Baro/AP_Baro.h>
-#include <AP_BattMonitor/AP_BattMonitor.h>          // Battery monitor library
-#include <AP_Beacon/AP_Beacon.h>
-#include <AP_BoardConfig/AP_BoardConfig.h>
-#include <AP_BoardConfig/AP_BoardConfig_CAN.h>
-#include <AP_Buffer/AP_Buffer.h>                    // FIFO buffer library
-#include <AP_Button/AP_Button.h>
-#include <AP_Camera/AP_Camera.h>                    // Camera triggering
-#include <AP_Compass/AP_Compass.h>                  // ArduPilot Mega Magnetometer Library
-#include <AP_Declination/AP_Declination.h>          // Compass declination library
-#include <AP_Frsky_Telem/AP_Frsky_Telem.h>
-#include <AP_GPS/AP_GPS.h>                          // ArduPilot GPS library
-#include <AP_InertialSensor/AP_InertialSensor.h>    // Inertial Sensor (uncalibated IMU) Library
-#include <AP_L1_Control/AP_L1_Control.h>
-#include <AP_Math/AP_Math.h>                        // ArduPilot Mega Vector/Matrix math Library
-#include <AP_Menu/AP_Menu.h>
-#include <AP_Mission/AP_Mission.h>                  // Mission command library
-#include <AP_Mount/AP_Mount.h>                      // Camera/Antenna mount
-#include <AP_NavEKF2/AP_NavEKF2.h>
-#include <AP_NavEKF3/AP_NavEKF3.h>
-#include <AP_Navigation/AP_Navigation.h>
-#include <AP_Notify/AP_Notify.h>                    // Notify library
-#include <AP_OpticalFlow/AP_OpticalFlow.h>          // Optical Flow library
-#include <AP_Param/AP_Param.h>
-#include <AP_Rally/AP_Rally.h>
-#include <AP_RangeFinder/AP_RangeFinder.h>          // Range finder library
-#include <AP_RCMapper/AP_RCMapper.h>                // RC input mapping library
-#include <AP_Relay/AP_Relay.h>                      // APM relay
-#include <AP_RSSI/AP_RSSI.h>                        // RSSI Library
-#include <AP_Scheduler/AP_Scheduler.h>              // main loop scheduler
-#include <AP_SerialManager/AP_SerialManager.h>      // Serial manager library
-#include <AP_ServoRelayEvents/AP_ServoRelayEvents.h>
-#include <AP_Stats/AP_Stats.h>                      // statistics library
-#include <AP_Terrain/AP_Terrain.h>
-#include <AP_Vehicle/AP_Vehicle.h>                  // needed for AHRS build
-#include <AP_VisualOdom/AP_VisualOdom.h>
-#include <AP_WheelEncoder/AP_WheelEncoder.h>
-#include <APM_Control/AR_AttitudeControl.h>
-#include <AP_SmartRTL/AP_SmartRTL.h>
-#include <DataFlash/DataFlash.h>
-#include <Filter/AverageFilter.h>                   // Mode Filter from Filter library
-#include <Filter/Butter.h>                          // Filter library - butterworth filter
-#include <Filter/Filter.h>                          // Filter library
-#include <Filter/LowPassFilter.h>
-#include <Filter/ModeFilter.h>                      // Mode Filter from Filter library
-#include <RC_Channel/RC_Channel.h>                  // RC Channel Library
-#include <StorageManager/StorageManager.h>
+#include <../libraries/AP_Common/AP_Common.h>
+#include <../libraries/AP_HAL/AP_HAL.h>
+#include <../libraries/AC_PID/AC_P.h>
+#include <../libraries/AC_PID/AC_PID.h>
+#include <../libraries/AP_AccelCal/AP_AccelCal.h>                // interface and maths for accelerometer calibration
+#include <../libraries/AP_ADC/AP_ADC.h>                          // ArduPilot Mega Analog to Digital Converter Library
+#include <../libraries/AP_AHRS/AP_AHRS.h>                        // ArduPilot Mega DCM Library
+#include <../libraries/AP_Airspeed/AP_Airspeed.h>                // needed for AHRS build
+#include <../libraries/AP_Baro/AP_Baro.h>
+#include <../libraries/AP_BattMonitor/AP_BattMonitor.h>          // Battery monitor library
+#include <../libraries/AP_Beacon/AP_Beacon.h>
+#include <../libraries/AP_BoardConfig/AP_BoardConfig.h>
+#include <../libraries/AP_BoardConfig/AP_BoardConfig_CAN.h>
+#include <../libraries/AP_Buffer/AP_Buffer.h>                    // FIFO buffer library
+#include <../libraries/AP_Button/AP_Button.h>
+#include <../libraries/AP_Camera/AP_Camera.h>                    // Camera triggering
+#include <../libraries/AP_Compass/AP_Compass.h>                  // ArduPilot Mega Magnetometer Library
+#include <../libraries/AP_Declination/AP_Declination.h>          // Compass declination library
+#include <../libraries/AP_Frsky_Telem/AP_Frsky_Telem.h>
+#include <../libraries/AP_GPS/AP_GPS.h>                          // ArduPilot GPS library
+#include <../libraries/AP_InertialSensor/AP_InertialSensor.h>    // Inertial Sensor (uncalibated IMU) Library
+#include <../libraries/AP_L1_Control/AP_L1_Control.h>
+#include <../libraries/AP_Math/AP_Math.h>                        // ArduPilot Mega Vector/Matrix math Library
+#include <../libraries/AP_Menu/AP_Menu.h>
+#include <../libraries/AP_Mission/AP_Mission.h>                  // Mission command library
+#include <../libraries/AP_Mount/AP_Mount.h>                      // Camera/Antenna mount
+#include <../libraries/AP_NavEKF2/AP_NavEKF2.h>
+#include <../libraries/AP_NavEKF3/AP_NavEKF3.h>
+#include <../libraries/AP_Navigation/AP_Navigation.h>
+#include <../libraries/AP_Notify/AP_Notify.h>                    // Notify library
+#include <../libraries/AP_OpticalFlow/AP_OpticalFlow.h>          // Optical Flow library
+#include <../libraries/AP_Param/AP_Param.h>
+#include <../libraries/AP_Rally/AP_Rally.h>
+#include <../libraries/AP_RangeFinder/AP_RangeFinder.h>          // Range finder library
+#include <../libraries/AP_RCMapper/AP_RCMapper.h>                // RC input mapping library
+#include <../libraries/AP_Relay/AP_Relay.h>                      // APM relay
+#include <../libraries/AP_RSSI/AP_RSSI.h>                        // RSSI Library
+#include <../libraries/AP_Scheduler/AP_Scheduler.h>              // main loop scheduler
+#include <../libraries/AP_SerialManager/AP_SerialManager.h>      // Serial manager library
+#include <../libraries/AP_ServoRelayEvents/AP_ServoRelayEvents.h>
+#include <../libraries/AP_Stats/AP_Stats.h>                      // statistics library
+#include <../libraries/AP_Terrain/AP_Terrain.h>
+#include <../libraries/AP_Vehicle/AP_Vehicle.h>                  // needed for AHRS build
+#include <../libraries/AP_VisualOdom/AP_VisualOdom.h>
+#include <../libraries/AP_WheelEncoder/AP_WheelEncoder.h>
+#include <../libraries/APM_Control/AR_AttitudeControl.h>
+#include <../libraries/AP_SmartRTL/AP_SmartRTL.h>
+#include <../libraries/DataFlash/DataFlash.h>
+#include <../libraries/Filter/AverageFilter.h>                   // Mode Filter from Filter library
+#include <../libraries/Filter/Butter.h>                          // Filter library - butterworth filter
+#include <../libraries/Filter/Filter.h>                          // Filter library
+#include <../libraries/Filter/LowPassFilter.h>
+#include <../libraries/Filter/ModeFilter.h>                      // Mode Filter from Filter library
+#include <../libraries/RC_Channel/RC_Channel.h>                  // RC Channel Library
+#include <../libraries/StorageManager/StorageManager.h>
 #if CONFIG_HAL_BOARD == HAL_BOARD_SITL
 #include <SITL/SITL.h>
 #endif
@@ -395,6 +395,19 @@ private:
         LowPassFilterFloat throttle_filt = LowPassFilterFloat(2.0f);
     } cruise_learn;
 
+    ////////////////////////////////////////////////////////////////////
+    /// VINICIUS - dados para orientacao do trem
+    ///
+    struct Location ponto_alvo = current_loc; // Pura inicializacao
+    float angulo_atual;               // Angulo de orientacao a partir de bussola ou GPS, depende da situacao [CENTIDEGREES]
+    float angulo_pitch_altura;        // Angulo calculado com a diferenca de altitude e a distancia para o ponto, varia o pitch [RAD]
+    bool  estamos_dentro = false;
+    float distancia_controlada;       // Distancia medida dos pontos, principalmente do mais proximo quando dentro do raio
+    float raio_limite = 40.0f;        // Inicial default [metros]
+    float indice_wp_buscado = 10;     // Indice do WP que estamos proximos
+    float angulo_proximo_wp = 0.0f;   // Angulo para proximo waypoint, tentativa de ser float, antigo next_navigation_leg_cd
+    ////////////////////////////////////////////////////////////////////
+
 private:
 
     // APMrover2.cpp
@@ -584,6 +597,12 @@ public:
     bool mavlink_motor_test_check(mavlink_channel_t chan, bool check_rc, uint8_t motor_seq, uint8_t throttle_type, int16_t throttle_value);
     MAV_RESULT mavlink_motor_test_start(mavlink_channel_t chan, uint8_t motor_seq, uint8_t throttle_type, int16_t throttle_value, float timeout_sec);
     void motor_test_stop();
+
+    // Vinicius
+    void enviando_dados_relevantes();
+    void obter_bearing_correto(void);
+    float atan2(float y, float x);
+    float fabs(float z);
 };
 
 extern const AP_HAL::HAL& hal;

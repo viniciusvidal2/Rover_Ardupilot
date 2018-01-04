@@ -1032,3 +1032,15 @@ uint32_t AP_AHRS_DCM::uptime_ms(void) const
     }
     return AP_HAL::millis() - _last_startup_ms;
 }
+
+//// VINICIUS
+//// return true if we have and should use GPS
+//bool AP_AHRS_DCM::have_gps_porra(void) const
+//{
+//    /*const AP_GPS &_gps = AP::gps();*/
+//    if (_gps.status() <= AP_GPS::NO_FIX || !_gps_use) {
+//        return false;
+//    }
+//    return true;
+//}
+

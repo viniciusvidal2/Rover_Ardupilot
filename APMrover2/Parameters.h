@@ -206,6 +206,11 @@ public:
         // 254,255: reserved
         };
 
+    // VINICIUS
+    // Velocidade minima a partir disso a orientacao vem da bussola, nao do gps
+    AP_Int16    vel_min_gps;
+    AP_Int16    altura_carro; // Altura do carro em centimetros
+
     AP_Int16    format_version;
     AP_Int8     software_type;
 

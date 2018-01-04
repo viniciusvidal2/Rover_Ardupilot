@@ -120,6 +120,10 @@ public:
     // time that the AHRS has been up
     uint32_t uptime_ms() const override;
 
+//    // VINICIUS
+//    // Para checar GPS no controle de orientacao
+//    bool            have_gps_porra(void) const;
+
 private:
     float _ki;
     float _ki_yaw;
