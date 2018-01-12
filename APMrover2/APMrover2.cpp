@@ -45,7 +45,7 @@ Rover rover;
 const AP_Scheduler::Task Rover::scheduler_tasks[] = {
     //         Function name,          Hz,     us,
     SCHED_TASK(obter_bearing_correto,  50,   6400),
-    SCHED_TASK(enviando_dados_relevantes, 50,  6400),
+    //SCHED_TASK(enviando_dados_relevantes, 50,  6400),
     SCHED_TASK(read_radio,             50,   1000),
     SCHED_TASK(ahrs_update,            50,   6400),
     SCHED_TASK(read_rangefinders,      50,   2000),

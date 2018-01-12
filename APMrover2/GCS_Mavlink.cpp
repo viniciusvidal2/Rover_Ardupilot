@@ -554,7 +554,7 @@ GCS_MAVLINK_Rover::data_stream_send(void)
         send_message(MSG_GPS_RTK);
         send_message(MSG_GPS2_RAW);
         send_message(MSG_GPS2_RTK);
-        send_message(MSG_NAV_CONTROLLER_OUTPUT);
+        //send_message(MSG_NAV_CONTROLLER_OUTPUT);
     }
 
     if (gcs().out_of_time()) {
@@ -580,8 +580,8 @@ GCS_MAVLINK_Rover::data_stream_send(void)
     }
 
     if (stream_trigger(STREAM_RC_CHANNELS)) {
-        send_message(MSG_SERVO_OUTPUT_RAW);
-        send_message(MSG_RADIO_IN);
+        //send_message(MSG_SERVO_OUTPUT_RAW);
+        //send_message(MSG_RADIO_IN);
     }
 
     if (gcs().out_of_time()) {
@@ -590,8 +590,8 @@ GCS_MAVLINK_Rover::data_stream_send(void)
 
     if (stream_trigger(STREAM_EXTRA1)) {
         send_message(MSG_ATTITUDE);
-        send_message(MSG_SIMSTATE);
-        send_message(MSG_PID_TUNING);
+        //send_message(MSG_SIMSTATE);
+        //send_message(MSG_PID_TUNING);
     }
 
     if (gcs().out_of_time()) {
@@ -609,16 +609,16 @@ GCS_MAVLINK_Rover::data_stream_send(void)
     if (stream_trigger(STREAM_EXTRA3)) {
         send_message(MSG_AHRS);
         send_message(MSG_HWSTATUS);
-        send_message(MSG_RANGEFINDER);
+        //send_message(MSG_RANGEFINDER);
         send_message(MSG_SYSTEM_TIME);
-        send_message(MSG_BATTERY2);
-        send_message(MSG_BATTERY_STATUS);
-        send_message(MSG_MAG_CAL_REPORT);
-        send_message(MSG_MAG_CAL_PROGRESS);
-        send_message(MSG_MOUNT_STATUS);
-        send_message(MSG_EKF_STATUS_REPORT);
-        send_message(MSG_VIBRATION);
-        send_message(MSG_RPM);
+        //send_message(MSG_BATTERY2);
+        //end_message(MSG_BATTERY_STATUS);
+        //send_message(MSG_MAG_CAL_REPORT);
+        //send_message(MSG_MAG_CAL_PROGRESS);
+        //send_message(MSG_MOUNT_STATUS);
+        //send_message(MSG_EKF_STATUS_REPORT);
+        //send_message(MSG_VIBRATION);
+        //send_message(MSG_RPM);
     }
 }
 
