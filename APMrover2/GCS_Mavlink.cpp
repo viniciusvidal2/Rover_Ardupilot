@@ -545,10 +545,19 @@ GCS_MAVLINK_Rover::data_stream_send(void)
     if (gcs().out_of_time()) {
       return;
     }
+    //////////// Essa mensagem e importante, colocada aqui em cima por isso
+    if (stream_trigger(STREAM_EXTRA2)) {
+        send_message(MSG_VFR_HUD);
+    }
+
+    if (gcs().out_of_time()) {
+      return;
+    }
+    ///////////////////////////////////////////////////////////////////////
 
     if (stream_trigger(STREAM_EXTENDED_STATUS)) {
-        send_message(MSG_EXTENDED_STATUS1);
-        send_message(MSG_EXTENDED_STATUS2);
+        //send_message(MSG_EXTENDED_STATUS1);
+        //send_message(MSG_EXTENDED_STATUS2);
         send_message(MSG_CURRENT_WAYPOINT);
         send_message(MSG_GPS_RAW);
         send_message(MSG_GPS_RTK);
@@ -572,7 +581,7 @@ GCS_MAVLINK_Rover::data_stream_send(void)
     }
 
     if (stream_trigger(STREAM_RAW_CONTROLLER)) {
-        send_message(MSG_SERVO_OUT);
+        //send_message(MSG_SERVO_OUT);
     }
 
     if (gcs().out_of_time()) {
@@ -592,14 +601,6 @@ GCS_MAVLINK_Rover::data_stream_send(void)
         send_message(MSG_ATTITUDE);
         //send_message(MSG_SIMSTATE);
         //send_message(MSG_PID_TUNING);
-    }
-
-    if (gcs().out_of_time()) {
-      return;
-    }
-
-    if (stream_trigger(STREAM_EXTRA2)) {
-        send_message(MSG_VFR_HUD);
     }
 
     if (gcs().out_of_time()) {

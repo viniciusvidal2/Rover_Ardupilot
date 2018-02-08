@@ -110,6 +110,8 @@ public:
         k_param_auto_kickstart,
         k_param_turn_circle,  // unused
         k_param_turn_max_g,
+        k_param_vel_min_gps, // VINICIUS
+        k_param_altura_carro,
 
         //
         // 160: Radio settings

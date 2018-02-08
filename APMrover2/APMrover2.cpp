@@ -45,18 +45,18 @@ Rover rover;
 const AP_Scheduler::Task Rover::scheduler_tasks[] = {
     //         Function name,          Hz,     us,
     SCHED_TASK(obter_bearing_correto,  50,   6400),
-    //SCHED_TASK(enviando_dados_relevantes, 50,  6400),
+    //SCHED_TASK(enviando_dados_relevantes, 20,  6400),
     SCHED_TASK(read_radio,             50,   1000),
     SCHED_TASK(ahrs_update,            50,   6400),
-    SCHED_TASK(read_rangefinders,      50,   2000),
+    //SCHED_TASK(read_rangefinders,      50,   2000),
     SCHED_TASK(update_current_mode,    50,   1500),
     SCHED_TASK(set_servos,             50,   1500),
     SCHED_TASK(update_GPS_50Hz,        50,   2500),
     SCHED_TASK(update_GPS_10Hz,        10,   2500),
     SCHED_TASK(update_alt,             10,   3400),
     SCHED_TASK(update_beacon,          50,     50),
-    SCHED_TASK(update_visual_odom,     50,     50),
-    SCHED_TASK(update_wheel_encoder,   20,     50),
+    //SCHED_TASK(update_visual_odom,     50,     50),
+    //SCHED_TASK(update_wheel_encoder,   20,     50),
     SCHED_TASK(update_compass,         10,   2000),
     SCHED_TASK(update_mission,         10,   1000),
     SCHED_TASK(update_logging1,        10,   1000),
@@ -429,7 +429,7 @@ void Rover::obter_bearing_correto(void)
     angulo_pitch_altura = 0; // Manter horizontal
     // Condicao de GPS
     const Vector3f &vel = gps.velocity();
-    if((uint16_t)gps.ground_speed_cm() > 500 && gps.is_healthy() && gps.status() >= AP_GPS::GPS_OK_FIX_3D){ // COloquei vel_min_gps na mao
+    if((uint16_t)gps.ground_speed_cm() > g.vel_min_gps && gps.is_healthy() && gps.status() >= AP_GPS::GPS_OK_FIX_3D){ // COloquei vel_min_gps na mao
         // Eixo X aponta norte positivo, eixo Y aponta leste positivo; norte seria 0 graus, positivo sentido horario
         angulo_atual = (atan2(vel.y, vel.x) >= 0) ? atan2(vel.y, vel.x) : atan2(vel.y, vel.x)+2*M_PI; // [RAD]
         angulo_atual = (int32_t)degrees(angulo_atual);

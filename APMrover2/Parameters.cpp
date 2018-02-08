@@ -308,6 +308,13 @@ const AP_Param::Info Rover::var_info[] = {
     // @User: Standard
     GSCALAR(turn_max_g,             "TURN_MAX_G",      1.0f),
 
+    // VINICIUS
+    // Aqui velocidade minima para a orientacao por gps [cm/s]
+    GSCALAR(vel_min_gps,             "VELOCIDADE_MINIMA_GPS",      150),
+
+    // Aqui altura em relacao ao chao das cameras [cm]
+    GSCALAR(altura_carro,             "ALTURA_CARRO",      210),
+
     // variables not in the g class which contain EEPROM saved variables
 
     // @Group: COMPASS_
