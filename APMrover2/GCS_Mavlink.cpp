@@ -173,7 +173,7 @@ void Rover::send_vfr_hud(mavlink_channel_t chan)
         angulo_pitch_altura, // gps.ground_speed(),                          // VINICIUS
         (ahrs.yaw_sensor / 100) % 360,// angulo_atual, // ahrs.groundspeed(),
         angulo_proximo_wp, // (ahrs.yaw_sensor / 100) % 360,
-        g2.motors.get_throttle(),
+        (float)estamos_dentro,//g2.motors.get_throttle(),
         current_loc.alt / 100.0f,
         0);
 }
