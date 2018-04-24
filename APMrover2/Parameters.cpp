@@ -288,7 +288,7 @@ const AP_Param::Info Rover::var_info[] = {
     // @Range: 0 1000
     // @Increment: 0.1
     // @User: Standard
-    GSCALAR(waypoint_radius,        "WP_RADIUS",        2.0f),
+    GSCALAR(waypoint_radius,        "WP_RADIUS",        20.0f), //VINICIUS tomando essa variavel emprestada para o raio limite
 
     // @Param: WP_OVERSHOOT
     // @DisplayName: Waypoint overshoot maximum
@@ -314,6 +314,9 @@ const AP_Param::Info Rover::var_info[] = {
 
     // Aqui altura em relacao ao chao das cameras [cm]
     GSCALAR(altura_carro,             "ALTURA_CARRO",      210),
+
+//     Raio para apontarmos para o waypoint
+//    GSCALAR(raio_limite,             "RAIO_LIMITE",      20.0f),
 
     // variables not in the g class which contain EEPROM saved variables
 
@@ -531,7 +534,7 @@ const AP_Param::GroupInfo ParametersG2::var_info[] = {
     // @Range: 0 100
     // @Increment: 0.1
     // @User: Standard
-    AP_GROUPINFO("WP_SPEED", 14, ParametersG2, wp_speed, 0.0f),
+    AP_GROUPINFO("WP_SPEED_MINIMUM", 14, ParametersG2, wp_speed, 3.0f),
 
     // @Param: RTL_SPEED
     // @DisplayName: Return-to-Launch speed default

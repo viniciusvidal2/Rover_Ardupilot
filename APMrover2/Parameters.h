@@ -112,6 +112,7 @@ public:
         k_param_turn_max_g,
         k_param_vel_min_gps, // VINICIUS
         k_param_altura_carro,
+//        k_param_raio_limite,
 
         //
         // 160: Radio settings
@@ -212,6 +213,7 @@ public:
     // Velocidade minima a partir disso a orientacao vem da bussola, nao do gps
     AP_Int16    vel_min_gps;
     AP_Int16    altura_carro; // Altura do carro em centimetros
+//    AP_Float    raio_limite; // Raio para estarmos perto do ponto
 
     AP_Int16    format_version;
     AP_Int8     software_type;

@@ -403,7 +403,7 @@ private:
     float angulo_pitch_altura;        // Angulo calculado com a diferenca de altitude e a distancia para o ponto, varia o pitch [RAD]
     bool  estamos_dentro = false;
     float distancia_controlada;       // Distancia medida dos pontos, principalmente do mais proximo quando dentro do raio
-    float raio_limite = 40.0f;        // Inicial default [metros]
+//    float raio_limite = 20.0f;        // Inicial default [metros] -> agora parametro geral que vem pelo qgc
     float indice_wp_buscado = 10;     // Indice do WP que estamos proximos
     float angulo_proximo_wp = 0.0f;   // Angulo para proximo waypoint, tentativa de ser float, antigo next_navigation_leg_cd
     ////////////////////////////////////////////////////////////////////

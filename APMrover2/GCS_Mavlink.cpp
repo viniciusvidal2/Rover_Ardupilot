@@ -68,7 +68,7 @@ void Rover::send_attitude(mavlink_channel_t chan)
         millis(),
         ahrs.roll,
         ahrs.pitch,
-        ahrs.yaw,
+        ahrs.yaw,// angulo_atual*100,
         omega.x,
         omega.y,
         omega.z);
@@ -171,7 +171,7 @@ void Rover::send_vfr_hud(mavlink_channel_t chan)
     mavlink_msg_vfr_hud_send(
         chan,
         angulo_pitch_altura, // gps.ground_speed(),                          // VINICIUS
-        (ahrs.yaw_sensor / 100) % 360,// angulo_atual, // ahrs.groundspeed(),
+        angulo_atual, //(ahrs.yaw_sensor / 100) % 360,// angulo_atual, // ahrs.groundspeed(),
         angulo_proximo_wp, // (ahrs.yaw_sensor / 100) % 360,
         (float)estamos_dentro,//g2.motors.get_throttle(),
         current_loc.alt / 100.0f,

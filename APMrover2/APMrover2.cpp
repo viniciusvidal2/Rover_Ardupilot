@@ -429,7 +429,7 @@ void Rover::obter_bearing_correto(void)
     angulo_pitch_altura = 0; // Manter horizontal
     // Condicao de GPS
     const Vector3f &vel = gps.velocity();
-    if((uint16_t)gps.ground_speed_cm() > g.vel_min_gps && gps.is_healthy() && gps.status() >= AP_GPS::GPS_OK_FIX_3D){ // COloquei vel_min_gps na mao
+    if((uint16_t)gps.ground_speed_cm() > g2.wp_speed*100 && gps.is_healthy() && gps.status() >= AP_GPS::GPS_OK_FIX_3D){ // COloquei vel_min_gps na mao
         // Eixo X aponta norte positivo, eixo Y aponta leste positivo; norte seria 0 graus, positivo sentido horario
         angulo_atual = (atan2(vel.y, vel.x) >= 0) ? atan2(vel.y, vel.x) : atan2(vel.y, vel.x)+2*M_PI; // [RAD]
         angulo_atual = (int32_t)degrees(angulo_atual);
@@ -446,12 +446,13 @@ void Rover::obter_bearing_correto(void)
         {
             mission.read_cmd_from_storage(contador, temp_cmd);
             // Cada waypoint deve ter seu raio definido no parametro p1 (primeiro quadrado MISSIOM PLANNER)
+            // MUDANCA: usamos um so raio, definido no waypoint radius
             // 20 por seguranca caso se esqueca disso, para nao ter problema no codigo
-            raio_limite = ((float)(temp_cmd.p1) > 0) ? (float)(temp_cmd.p1) : 20;
+            g.waypoint_radius = (g.waypoint_radius > 0) ? g.waypoint_radius : 20.0f;
 
             distancia_controlada = get_distance(current_loc, temp_cmd.content.location);
 
-            if (distancia_controlada < raio_limite)
+            if (distancia_controlada < g.waypoint_radius)
             {
                 estamos_dentro = true;
                 ponto_alvo = temp_cmd.content.location;
@@ -475,7 +476,8 @@ void Rover::obter_bearing_correto(void)
     } else { // Aqui entramos no raio de acao, variaveis desejadas atualizadas
         // A altitude do waypoint esta em centimetros, a altura atual tambem, entao levar a distancia ao waypoint para centimetros antes de tirar tangente
         angulo_pitch_altura = atan2((float)(temp_cmd.content.location.alt - (float)g.altura_carro), (float)distancia_controlada*100); // Angulo de pitch sobre a altura do poste
-        angulo_proximo_wp = get_bearing_cd(current_loc, ponto_alvo); // Aqui estamos apontando para o waypoint e enviando para o servo
+        angulo_proximo_wp = 100*degrees( atan2(ponto_alvo.lng-current_loc.lng, ponto_alvo.lat-current_loc.lat) );
+//        angulo_proximo_wp = get_bearing_cd(current_loc, ponto_alvo); // Aqui estamos apontando para o waypoint e enviando para o servo
     }
 }
 
