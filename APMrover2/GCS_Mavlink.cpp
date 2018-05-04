@@ -3,6 +3,7 @@
 #include "GCS_Mavlink.h"
 
 #include <AP_RangeFinder/RangeFinder_Backend.h>
+#include <AP_Math/AP_Math.h>
 
 void Rover::send_heartbeat(mavlink_channel_t chan)
 {
@@ -62,13 +63,19 @@ void Rover::send_heartbeat(mavlink_channel_t chan)
 
 void Rover::send_attitude(mavlink_channel_t chan)
 {
+//    double angulo_certo_pelo_gps_mostrar_qground = 0;
+//    if(angulo_atual < 327)
+//        angulo_certo_pelo_gps_mostrar_qground = angulo_atual*100;
+//    else
+//        angulo_certo_pelo_gps_mostrar_qground = (angulo_atual-650)*100;
     const Vector3f omega = ahrs.get_gyro();
+//    ahrs.yaw = angulo_certo_pelo_gps_mostrar_qground;
     mavlink_msg_attitude_send(
         chan,
         millis(),
         ahrs.roll,
         ahrs.pitch,
-        ahrs.yaw,// angulo_atual*100,
+        ahrs.yaw, // AQUI e a orientacao que aponta no qgroundcontrol
         omega.x,
         omega.y,
         omega.z);
@@ -133,8 +140,8 @@ void Rover::send_nav_controller_output(mavlink_channel_t chan)
         chan,
         g2.attitude_control.get_desired_lat_accel(),
         ahrs.groundspeed() * ins.get_gyro().z,  // use nav_pitch to hold actual Y accel
-        nav_controller->nav_bearing_cd() * 0.01f,
-        nav_controller->target_bearing_cd() * 0.01f,
+        angulo_atual,//nav_controller->nav_bearing_cd() * 0.01f,
+        angulo_atual,//nav_controller->target_bearing_cd() * 0.01f,
         MIN(control_mode->get_distance_to_destination(), UINT16_MAX),
         0,
         control_mode->speed_error(),
@@ -168,6 +175,11 @@ void Rover::send_servo_out(mavlink_channel_t chan)
 
 void Rover::send_vfr_hud(mavlink_channel_t chan)
 {
+//    float angulo_certo_pelo_gps_mostrar_qground = 0;
+//    if(angulo_atual < 327.0f)
+//        angulo_certo_pelo_gps_mostrar_qground = angulo_atual*100.0f+43.0f;
+//    else
+//        angulo_certo_pelo_gps_mostrar_qground = (angulo_atual-650.0f)*100.0+43.0f;
     mavlink_msg_vfr_hud_send(
         chan,
         angulo_pitch_altura, // gps.ground_speed(),                          // VINICIUS

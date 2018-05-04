@@ -463,7 +463,7 @@ void Rover::obter_bearing_correto(void)
         }
     } else {
         angulo_atual = (ahrs.yaw_sensor/100) % 360;
-        angulo_proximo_wp = angulo_atual * 100.0f; // Aqui faz entao apontar pra frente, por desencargo [centidegrees]
+        angulo_proximo_wp = angulo_atual; // Aqui faz entao apontar pra frente, por desencargo [DEGREES]
         angulo_pitch_altura = 0; // Manter horizontal
         //angulo_atual = 2.5f;
     }
@@ -471,12 +471,12 @@ void Rover::obter_bearing_correto(void)
     if (!estamos_dentro)
     {
         ponto_alvo = current_loc;
-        angulo_proximo_wp = angulo_atual * 100.0f;
+        angulo_proximo_wp = angulo_atual;
         angulo_pitch_altura = 0; // Manter horizontal
     } else { // Aqui entramos no raio de acao, variaveis desejadas atualizadas
         // A altitude do waypoint esta em centimetros, a altura atual tambem, entao levar a distancia ao waypoint para centimetros antes de tirar tangente
         angulo_pitch_altura = atan2((float)(temp_cmd.content.location.alt - (float)g.altura_carro), (float)distancia_controlada*100); // Angulo de pitch sobre a altura do poste
-        angulo_proximo_wp = 100*degrees( atan2(ponto_alvo.lng-current_loc.lng, ponto_alvo.lat-current_loc.lat) );
+        angulo_proximo_wp = degrees( atan2(ponto_alvo.lng-current_loc.lng, ponto_alvo.lat-current_loc.lat) );
 //        angulo_proximo_wp = get_bearing_cd(current_loc, ponto_alvo); // Aqui estamos apontando para o waypoint e enviando para o servo
     }
 }
