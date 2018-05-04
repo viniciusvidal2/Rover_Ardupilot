@@ -63,7 +63,7 @@ const AP_Scheduler::Task Rover::scheduler_tasks[] = {
     SCHED_TASK(update_logging2,        10,   1000),
     SCHED_TASK(gcs_retry_deferred,     50,   1000),
     SCHED_TASK(gcs_update,             50,   1700),
-    SCHED_TASK(gcs_data_stream_send,   50,   3000),
+    SCHED_TASK(gcs_data_stream_send,   70,   3000),
     SCHED_TASK(read_control_switch,     7,   1000),
     SCHED_TASK(read_aux_switch,        10,    100),
     SCHED_TASK(read_battery,           10,   1000),
@@ -427,14 +427,23 @@ void Rover::obter_bearing_correto(void)
     // Inicialmente lemos da bussola, caso aceite a condicao usamos GPS
     angulo_atual = (ahrs.yaw_sensor/100) % 360;
     angulo_pitch_altura = 0; // Manter horizontal
-    // Condicao de GPS
-    const Vector3f &vel = gps.velocity();
+//    // Condicao de GPS
+//    const Vector3f &vel = gps.velocity();
+//    if((uint16_t)gps.ground_speed_cm() > g2.wp_speed*100 && gps.is_healthy() && gps.status() >= AP_GPS::GPS_OK_FIX_3D){ // COloquei vel_min_gps na mao
+//        // Eixo X aponta norte positivo, eixo Y aponta leste positivo; norte seria 0 graus, positivo sentido horario
+//        angulo_atual = (atan2(vel.y, vel.x) >= 0) ? atan2(vel.y, vel.x) : atan2(vel.y, vel.x)+2*M_PI; // [RAD]
+//        angulo_atual = (int32_t)degrees(angulo_atual);
+//        //angulo_atual = 2.5f;
+//    }
+
+    Vector3f velocidade_ekf;
+    ahrs.get_velocity_NED(velocidade_ekf);
     if((uint16_t)gps.ground_speed_cm() > g2.wp_speed*100 && gps.is_healthy() && gps.status() >= AP_GPS::GPS_OK_FIX_3D){ // COloquei vel_min_gps na mao
         // Eixo X aponta norte positivo, eixo Y aponta leste positivo; norte seria 0 graus, positivo sentido horario
-        angulo_atual = (atan2(vel.y, vel.x) >= 0) ? atan2(vel.y, vel.x) : atan2(vel.y, vel.x)+2*M_PI; // [RAD]
-        angulo_atual = (int32_t)degrees(angulo_atual);
-        //angulo_atual = 2.5f;
+        angulo_atual = degrees((atan2(velocidade_ekf.y, velocidade_ekf.x) > 0 ? atan2(velocidade_ekf.y, velocidade_ekf.x) : atan2(velocidade_ekf.y, velocidade_ekf.x) + 2*M_PI)); // [DEGREES]
+//        angulo_atual = degrees(angulo_atual);
     }
+
     // Procurando algum ponto que estejamos dentro
     AP_Mission::Mission_Command temp_cmd;
 
@@ -462,10 +471,9 @@ void Rover::obter_bearing_correto(void)
             contador++;
         }
     } else {
-        angulo_atual = (ahrs.yaw_sensor/100) % 360;
+//        angulo_atual = (ahrs.yaw_sensor/100) % 360;
         angulo_proximo_wp = angulo_atual; // Aqui faz entao apontar pra frente, por desencargo [DEGREES]
         angulo_pitch_altura = 0; // Manter horizontal
-        //angulo_atual = 2.5f;
     }
 
     if (!estamos_dentro)
