@@ -2,7 +2,7 @@
 
 #include "GCS_Mavlink.h"
 
-#include <AP_RangeFinder/RangeFinder_Backend.h>
+#include <../libraries/AP_RangeFinder/RangeFinder_Backend.h>
 
 void Rover::send_heartbeat(mavlink_channel_t chan)
 {
@@ -166,6 +166,15 @@ void Rover::send_servo_out(mavlink_channel_t chan)
         receiver_rssi);
 }
 
+void Rover::send_vinicius(mavlink_channel_t chan)
+{
+    int intvar=5567875;
+    float floatvar=-4.5633;
+    mavlink_msg_vinicius_send( chan,
+                               intvar,
+                               floatvar);
+}
+
 void Rover::send_vfr_hud(mavlink_channel_t chan)
 {
     mavlink_msg_vfr_hud_send(
@@ -286,6 +295,10 @@ bool GCS_MAVLINK_Rover::try_send_message(enum ap_message id)
     }
 
     switch (id) {
+    case MSG_VINICIUS:
+        rover.send_vinicius(chan);
+        return true;
+
     case MSG_HEARTBEAT:
         CHECK_PAYLOAD_SIZE(HEARTBEAT);
         last_heartbeat_time = AP_HAL::millis();
@@ -548,6 +561,7 @@ GCS_MAVLINK_Rover::data_stream_send(void)
     //////////// Essa mensagem e importante, colocada aqui em cima por isso
     if (stream_trigger(STREAM_EXTRA2)) {
         send_message(MSG_VFR_HUD);
+        send_message(MSG_VINICIUS);
     }
 
     if (gcs().out_of_time()) {
