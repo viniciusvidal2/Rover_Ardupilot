@@ -396,16 +396,12 @@ private:
     } cruise_learn;
 
     ////////////////////////////////////////////////////////////////////
-    /// VINICIUS - dados para orientacao do trem
+    /// VINICIUS - dados para posicao
     ///
-    struct Location ponto_alvo = current_loc; // Pura inicializacao
-    int32_t angulo_atual;             // Angulo de orientacao a partir de bussola ou GPS, depende da situacao [CENTIDEGREES]
-    float angulo_pitch_altura;        // Angulo calculado com a diferenca de altitude e a distancia para o ponto, varia o pitch [RAD]
-    bool  estamos_dentro = false;
-    float distancia_controlada;       // Distancia medida dos pontos, principalmente do mais proximo quando dentro do raio
-//    float raio_limite = 20.0f;        // Inicial default [metros] -> agora parametro geral que vem pelo qgc
-    float indice_wp_buscado = 10;     // Indice do WP que estamos proximos
-    float angulo_proximo_wp = 0.0f;   // Angulo para proximo waypoint, tentativa de ser float, antigo next_navigation_leg_cd
+    Vector3f delta_S;              // Translacao atual (X, Y, Z)     [cm]
+    Vector3f delta_S_gps;          // Translacao atual (X, Y, Z) GPS [cm]
+    uint64_t tempo_integracao;     // Tempo que passou para inetgrar a velocidade
+    uint64_t tempo_integracao_gps; // Tempo que passou para inetgrar a velocidade
     ////////////////////////////////////////////////////////////////////
 
 private:
@@ -599,8 +595,8 @@ public:
     void motor_test_stop();
 
     // Vinicius
-    void enviando_dados_relevantes();
-    void obter_bearing_correto(void);
+    void enviando_dados();
+    void modelo_cinematico(void);
     float atan2(float y, float x);
     float fabs(float z);
 };

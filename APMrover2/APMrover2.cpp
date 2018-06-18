@@ -44,37 +44,37 @@ Rover rover;
 */
 const AP_Scheduler::Task Rover::scheduler_tasks[] = {
     //         Function name,          Hz,     us,
-    SCHED_TASK(obter_bearing_correto,  50,   6400),
-    //SCHED_TASK(enviando_dados_relevantes, 20,  6400),
-    SCHED_TASK(read_radio,             50,   1000),
+    SCHED_TASK(modelo_cinematico,      60,   6400),
+    SCHED_TASK(enviando_dados,         20,   6400),
+//    SCHED_TASK(read_radio,             50,   1000),
     SCHED_TASK(ahrs_update,            50,   6400),
     //SCHED_TASK(read_rangefinders,      50,   2000),
     SCHED_TASK(update_current_mode,    50,   1500),
-    SCHED_TASK(set_servos,             50,   1500),
+//    SCHED_TASK(set_servos,             50,   1500),
     SCHED_TASK(update_GPS_50Hz,        50,   2500),
     SCHED_TASK(update_GPS_10Hz,        10,   2500),
     SCHED_TASK(update_alt,             10,   3400),
-    SCHED_TASK(update_beacon,          50,     50),
+//    SCHED_TASK(update_beacon,          50,     50),
     //SCHED_TASK(update_visual_odom,     50,     50),
     //SCHED_TASK(update_wheel_encoder,   20,     50),
     SCHED_TASK(update_compass,         10,   2000),
-    SCHED_TASK(update_mission,         10,   1000),
-    SCHED_TASK(update_logging1,        10,   1000),
-    SCHED_TASK(update_logging2,        10,   1000),
+//    SCHED_TASK(update_mission,         10,   1000),
+//    SCHED_TASK(update_logging1,        10,   1000),
+//    SCHED_TASK(update_logging2,        10,   1000),
     SCHED_TASK(gcs_retry_deferred,     50,   1000),
     SCHED_TASK(gcs_update,             50,   1700),
-    SCHED_TASK(gcs_data_stream_send,   70,   3000),
-    SCHED_TASK(read_control_switch,     7,   1000),
-    SCHED_TASK(read_aux_switch,        10,    100),
-    SCHED_TASK(read_battery,           10,   1000),
-    SCHED_TASK(read_receiver_rssi,     10,   1000),
+    SCHED_TASK(gcs_data_stream_send,   60,   3000),
+//    SCHED_TASK(read_control_switch,     7,   1000),
+//    SCHED_TASK(read_aux_switch,        10,    100),
+//    SCHED_TASK(read_battery,           10,   1000),
+//    SCHED_TASK(read_receiver_rssi,     10,   1000),
     SCHED_TASK(update_events,          50,   1000),
     SCHED_TASK(check_usb_mux,           3,   1000),
-    SCHED_TASK(mount_update,           50,    600),
-    SCHED_TASK(update_trigger,         50,    600),
-    SCHED_TASK(gcs_failsafe_check,     10,    600),
+//    SCHED_TASK(mount_update,           50,    600),
+//    SCHED_TASK(update_trigger,         50,    600),
+//    SCHED_TASK(gcs_failsafe_check,     10,    600),
     SCHED_TASK(compass_accumulate,     50,    900),
-    SCHED_TASK(smart_rtl_update,        3,    100),
+//    SCHED_TASK(smart_rtl_update,        3,    100),
     SCHED_TASK(update_notify,          50,    300),
     SCHED_TASK(one_second_loop,         1,   3000),
     SCHED_TASK(compass_cal_update,     50,    100),
@@ -83,8 +83,8 @@ const AP_Scheduler::Task Rover::scheduler_tasks[] = {
     SCHED_TASK(ins_periodic,           50,     50),
     SCHED_TASK(button_update,           5,    100),
     SCHED_TASK(stats_update,            1,    100),
-    SCHED_TASK(crash_check,            10,   1000),
-    SCHED_TASK(cruise_learn_update,    50,     50),
+//    SCHED_TASK(crash_check,            10,   1000),
+//    SCHED_TASK(cruise_learn_update,    50,     50),
 #if ADVANCED_FAILSAFE == ENABLED
     SCHED_TASK(afs_fs_check,           10,    100),
 #endif
@@ -111,6 +111,12 @@ void Rover::setup()
 
     // initialise the main loop scheduler
     scheduler.init(&scheduler_tasks[0], ARRAY_SIZE(scheduler_tasks));
+
+    // Vinicius - iniciar variaveis de posicao
+    delta_S.x = 0; delta_S.y = 0; delta_S.z = 0;
+    delta_S_gps.x = 0; delta_S_gps.y = 0; delta_S_gps.z = 0;
+    tempo_integracao = AP_HAL::micros64();
+    tempo_integracao_gps = AP_HAL::micros64();
 }
 
 /*
@@ -406,7 +412,7 @@ void Rover::update_current_mode(void)
 AP_HAL_MAIN_CALLBACKS(&rover);
 
 // VINICIUS - orientacao durante navegacao
-void Rover::enviando_dados_relevantes()
+void Rover::enviando_dados()
 {
     // Forcando mensagens de interesse no loop mais rapido
     gcs().send_message(MSG_VFR_HUD);
@@ -415,78 +421,34 @@ void Rover::enviando_dados_relevantes()
 }
 
 // VINICIUS
-// Funcao de logica sobre missao, na rotina principal para ser mais rapido. Dados declarados em Rover.h
-void Rover::obter_bearing_correto(void)
+// Obtendo modelo cinematico a partir da leitura rapida dos sensores de velocidade, atitude e posicao
+void Rover::modelo_cinematico(void)
 {
-    // -----------------------------
-    // REGIAO DE CONTROLE INDEPENDENTE DE MISSAO AUTONOMA, COM RAIOS RECEBIDOS PELA GCS -> MAIS ROBUSTO
-    // Dados de orientacao : angulo_atual_gps [RAD]
-    //						 next_navigation_leg_cd [centidegrees]
-    // OBS: cuidado, no roteador, com as unidades dos angulos
+    /////////////////////////////////////////////////////////////////////////
+    /// \brief Calculo da posicao a partir dos sensores de velocidade
+    /////////////////////////////////////////////////////////////////////////
+    ///       Velocidade                Posicao           Falamos do
+    ///           ^ N                      ^ Y            FRAME INERCIAL
+    ///           |                        |
+    ///         D X --> E               Z  o --> X
+    ///
+    Vector3f velocidade_ekf; // [cm]
+    ahrs.get_velocity_NED(velocidade_ekf); // Aqui pega em metros, portanto calcula para centimetros abaixo
+    const Vector3f velocidade_gps = gps.velocity();
 
-    // Inicialmente lemos da bussola, caso aceite a condicao usamos GPS
-    angulo_atual = (ahrs.yaw_sensor/100) % 360;
-    angulo_pitch_altura = 0; // Manter horizontal
-//    // Condicao de GPS
-//    const Vector3f &vel = gps.velocity();
-//    if((uint16_t)gps.ground_speed_cm() > g2.wp_speed*100 && gps.is_healthy() && gps.status() >= AP_GPS::GPS_OK_FIX_3D){ // COloquei vel_min_gps na mao
-//        // Eixo X aponta norte positivo, eixo Y aponta leste positivo; norte seria 0 graus, positivo sentido horario
-//        angulo_atual = (atan2(vel.y, vel.x) >= 0) ? atan2(vel.y, vel.x) : atan2(vel.y, vel.x)+2*M_PI; // [RAD]
-//        angulo_atual = (int32_t)degrees(angulo_atual);
-//        //angulo_atual = 2.5f;
-//    }
+    tempo_integracao = AP_HAL::micros64() - tempo_integracao; // delta de tempo para integrar nesse caso [us]
+    delta_S.x += 100*  velocidade_ekf.y *float(tempo_integracao)*0.000001;
+    delta_S.y += 100*  velocidade_ekf.x *float(tempo_integracao)*0.000001;
+    delta_S.z += 100*(-velocidade_ekf.z)*float(tempo_integracao)*0.000001;
+    // Renova o tempo de integracao, que esta em microssegundos
+    tempo_integracao = AP_HAL::micros64();
 
-    Vector3f velocidade_ekf;
-    ahrs.get_velocity_NED(velocidade_ekf);
-    if((uint16_t)gps.ground_speed_cm() > g2.wp_speed*100 && gps.is_healthy() && gps.status() >= AP_GPS::GPS_OK_FIX_3D){ // COloquei vel_min_gps na mao
-        // Eixo X aponta norte positivo, eixo Y aponta leste positivo; norte seria 0 graus, positivo sentido horario
-        angulo_atual = degrees((atan2(velocidade_ekf.y, velocidade_ekf.x) > 0 ? atan2(velocidade_ekf.y, velocidade_ekf.x) : atan2(velocidade_ekf.y, velocidade_ekf.x) + 2*M_PI)); // [DEGREES]
-//        angulo_atual = degrees(angulo_atual);
-    }
-
-    // Procurando algum ponto que estejamos dentro
-    AP_Mission::Mission_Command temp_cmd;
-
-    if (mission.num_commands() > 0 && gps.status() >= AP_GPS::GPS_OK_FIX_3D) // Se ha missao alem do home
-    {
-        int contador = 2; // Pula o 0, que eh o HOME, e 1 que e o takeoff no linux e qgroundcontrol (assim imagino)
-        estamos_dentro = false;
-        while (!estamos_dentro && contador <= mission.num_commands()) // Enquanto nao encontramos algum ponto que estejamos muito proximos dentre todos
-        {
-            mission.read_cmd_from_storage(contador, temp_cmd);
-            // Cada waypoint deve ter seu raio definido no parametro p1 (primeiro quadrado MISSIOM PLANNER)
-            // MUDANCA: usamos um so raio, definido no waypoint radius
-            // 20 por seguranca caso se esqueca disso, para nao ter problema no codigo
-            g.waypoint_radius = (g.waypoint_radius > 0) ? g.waypoint_radius : 20.0f;
-
-            distancia_controlada = get_distance(current_loc, temp_cmd.content.location);
-
-            if (distancia_controlada < g.waypoint_radius)
-            {
-                estamos_dentro = true;
-                ponto_alvo = temp_cmd.content.location;
-                indice_wp_buscado = temp_cmd.index;
-                break; // Forca o fim da busca, ja foi encontrado o necessario
-            }
-            contador++;
-        }
-    } else {
-//        angulo_atual = (ahrs.yaw_sensor/100) % 360;
-        angulo_proximo_wp = angulo_atual; // Aqui faz entao apontar pra frente, por desencargo [DEGREES]
-        angulo_pitch_altura = 0; // Manter horizontal
-    }
-
-    if (!estamos_dentro)
-    {
-        ponto_alvo = current_loc;
-        angulo_proximo_wp = angulo_atual;
-        angulo_pitch_altura = 0; // Manter horizontal
-    } else { // Aqui entramos no raio de acao, variaveis desejadas atualizadas
-        // A altitude do waypoint esta em centimetros, a altura atual tambem, entao levar a distancia ao waypoint para centimetros antes de tirar tangente
-        angulo_pitch_altura = atan2((float)(temp_cmd.content.location.alt - (float)g.altura_carro), (float)distancia_controlada*100); // Angulo de pitch sobre a altura do poste
-        angulo_proximo_wp = degrees( atan2(ponto_alvo.lng-current_loc.lng, ponto_alvo.lat-current_loc.lat) );
-//        angulo_proximo_wp = get_bearing_cd(current_loc, ponto_alvo); // Aqui estamos apontando para o waypoint e enviando para o servo
-    }
+    tempo_integracao_gps = AP_HAL::micros64() - tempo_integracao_gps; // delta de tempo para integrar nesse caso [us]
+    delta_S_gps.x += 100*  velocidade_gps.y *float(tempo_integracao_gps)*0.000001;
+    delta_S_gps.y += 100*  velocidade_gps.x *float(tempo_integracao_gps)*0.000001;
+    delta_S_gps.z += 100*(-velocidade_gps.z)*float(tempo_integracao_gps)*0.000001;
+    // Renova o tempo de integracao, que esta em microssegundos
+    tempo_integracao_gps = AP_HAL::micros64();
 }
 
 #define PI_FLOAT     3.14159265f

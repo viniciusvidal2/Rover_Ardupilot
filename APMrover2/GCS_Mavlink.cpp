@@ -63,13 +63,7 @@ void Rover::send_heartbeat(mavlink_channel_t chan)
 
 void Rover::send_attitude(mavlink_channel_t chan)
 {
-//    double angulo_certo_pelo_gps_mostrar_qground = 0;
-//    if(angulo_atual < 327)
-//        angulo_certo_pelo_gps_mostrar_qground = angulo_atual*100;
-//    else
-//        angulo_certo_pelo_gps_mostrar_qground = (angulo_atual-650)*100;
     const Vector3f omega = ahrs.get_gyro();
-//    ahrs.yaw = angulo_certo_pelo_gps_mostrar_qground;
     mavlink_msg_attitude_send(
         chan,
         millis(),
@@ -120,7 +114,7 @@ void Rover::send_location(mavlink_channel_t chan)
     } else {
         fix_time = millis();
     }
-    const Vector3f &vel = gps.velocity();
+//    const Vector3f &vel = gps.velocity();
     mavlink_msg_global_position_int_send(
         chan,
         fix_time,
@@ -128,9 +122,9 @@ void Rover::send_location(mavlink_channel_t chan)
         current_loc.lng,                    // in 1E7 degrees
         current_loc.alt * 10UL,             // millimeters above sea level
         (current_loc.alt - home.alt) * 10,  // millimeters above home
-        vel.x * 100,   // X speed cm/s (+ve North)
-        vel.y * 100,   // Y speed cm/s (+ve East)
-        vel.z * -100,  // Z speed cm/s (+ve up)
+        delta_S.x, // vel.x * 100,   // X speed cm/s (+ve North)
+        delta_S.y, // vel.y * 100,   // Y speed cm/s (+ve East)
+        delta_S.z, // vel.z * -100,  // Z speed cm/s (+ve up)
         ahrs.yaw_sensor);
 }
 
@@ -140,8 +134,8 @@ void Rover::send_nav_controller_output(mavlink_channel_t chan)
         chan,
         g2.attitude_control.get_desired_lat_accel(),
         ahrs.groundspeed() * ins.get_gyro().z,  // use nav_pitch to hold actual Y accel
-        angulo_atual,//nav_controller->nav_bearing_cd() * 0.01f,
-        angulo_atual,//nav_controller->target_bearing_cd() * 0.01f,
+        nav_controller->nav_bearing_cd() * 0.01f,
+        nav_controller->target_bearing_cd() * 0.01f,
         MIN(control_mode->get_distance_to_destination(), UINT16_MAX),
         0,
         control_mode->speed_error(),
@@ -182,10 +176,10 @@ void Rover::send_vfr_hud(mavlink_channel_t chan)
 //        angulo_certo_pelo_gps_mostrar_qground = (angulo_atual-650.0f)*100.0+43.0f;
     mavlink_msg_vfr_hud_send(
         chan,
-        angulo_pitch_altura, // gps.ground_speed(),                          // VINICIUS
-        angulo_atual, //(ahrs.yaw_sensor / 100) % 360,// angulo_atual, // ahrs.groundspeed(),
-        angulo_proximo_wp, // (ahrs.yaw_sensor / 100) % 360,
-        (float)estamos_dentro,//g2.motors.get_throttle(),
+        gps.ground_speed(),                          // VINICIUS
+        ahrs.groundspeed(),
+        (ahrs.yaw_sensor / 100) % 360,
+        g2.motors.get_throttle(),
         current_loc.alt / 100.0f,
         0);
 }
@@ -611,8 +605,6 @@ GCS_MAVLINK_Rover::data_stream_send(void)
 
     if (stream_trigger(STREAM_EXTRA1)) {
         send_message(MSG_ATTITUDE);
-        //send_message(MSG_SIMSTATE);
-        //send_message(MSG_PID_TUNING);
     }
 
     if (gcs().out_of_time()) {
@@ -622,16 +614,7 @@ GCS_MAVLINK_Rover::data_stream_send(void)
     if (stream_trigger(STREAM_EXTRA3)) {
         send_message(MSG_AHRS);
         send_message(MSG_HWSTATUS);
-        //send_message(MSG_RANGEFINDER);
         send_message(MSG_SYSTEM_TIME);
-        //send_message(MSG_BATTERY2);
-        //end_message(MSG_BATTERY_STATUS);
-        //send_message(MSG_MAG_CAL_REPORT);
-        //send_message(MSG_MAG_CAL_PROGRESS);
-        //send_message(MSG_MOUNT_STATUS);
-        //send_message(MSG_EKF_STATUS_REPORT);
-        //send_message(MSG_VIBRATION);
-        //send_message(MSG_RPM);
     }
 }
 
