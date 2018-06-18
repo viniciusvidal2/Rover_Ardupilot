@@ -115,6 +115,10 @@ void Rover::send_location(mavlink_channel_t chan)
         fix_time = millis();
     }
 //    const Vector3f &vel = gps.velocity();
+    Vector3f vel;
+    ahrs.get_velocity_NED(vel);
+    const Vector3f acc = ins.get_accel(0);
+//    float teste = ins.get_accel(1);
     mavlink_msg_global_position_int_send(
         chan,
         fix_time,
@@ -122,9 +126,9 @@ void Rover::send_location(mavlink_channel_t chan)
         current_loc.lng,                    // in 1E7 degrees
         current_loc.alt * 10UL,             // millimeters above sea level
         (current_loc.alt - home.alt) * 10,  // millimeters above home
-        delta_S.x, // vel.x * 100,   // X speed cm/s (+ve North)
-        delta_S.y, // vel.y * 100,   // Y speed cm/s (+ve East)
-        delta_S.z, // vel.z * -100,  // Z speed cm/s (+ve up)
+        acc.x*10000, // delta_S.x, // vel.x * 100,   // X speed cm/s (+ve North)
+        acc.y*10000, // delta_S.y*1000, // vel.y * 100,   // Y speed cm/s (+ve East)
+        acc.z*10000, // delta_S.z*1000, // vel.z * -100,  // Z speed cm/s (+ve up)
         ahrs.yaw_sensor);
 }
 
@@ -552,24 +556,8 @@ GCS_MAVLINK_Rover::data_stream_send(void)
       return;
     }
     //////////// Essa mensagem e importante, colocada aqui em cima por isso
-    if (stream_trigger(STREAM_EXTRA2)) {
-        send_message(MSG_VFR_HUD);
-    }
-
-    if (gcs().out_of_time()) {
-      return;
-    }
-    ///////////////////////////////////////////////////////////////////////
-
-    if (stream_trigger(STREAM_EXTENDED_STATUS)) {
-        //send_message(MSG_EXTENDED_STATUS1);
-        //send_message(MSG_EXTENDED_STATUS2);
-        send_message(MSG_CURRENT_WAYPOINT);
-        send_message(MSG_GPS_RAW);
-        send_message(MSG_GPS_RTK);
-        send_message(MSG_GPS2_RAW);
-        send_message(MSG_GPS2_RTK);
-        //send_message(MSG_NAV_CONTROLLER_OUTPUT);
+    if (stream_trigger(STREAM_EXTRA1)) {
+        send_message(MSG_ATTITUDE);
     }
 
     if (gcs().out_of_time()) {
@@ -577,14 +565,36 @@ GCS_MAVLINK_Rover::data_stream_send(void)
     }
 
     if (stream_trigger(STREAM_POSITION)) {
-        // sent with GPS read
         send_message(MSG_LOCATION);
-        send_message(MSG_LOCAL_POSITION);
+//        send_message(MSG_LOCAL_POSITION);
     }
 
     if (gcs().out_of_time()) {
       return;
     }
+//    if (stream_trigger(STREAM_EXTRA2)) {
+//        send_message(MSG_VFR_HUD);
+//    }
+
+//    if (gcs().out_of_time()) {
+//      return;
+//    }
+    ///////////////////////////////////////////////////////////////////////
+
+//    if (stream_trigger(STREAM_EXTENDED_STATUS)) {
+//        //send_message(MSG_EXTENDED_STATUS1);
+//        //send_message(MSG_EXTENDED_STATUS2);
+//        send_message(MSG_CURRENT_WAYPOINT);
+//        send_message(MSG_GPS_RAW);
+//        send_message(MSG_GPS_RTK);
+//        send_message(MSG_GPS2_RAW);
+//        send_message(MSG_GPS2_RTK);
+//        //send_message(MSG_NAV_CONTROLLER_OUTPUT);
+//    }
+
+//    if (gcs().out_of_time()) {
+//      return;
+//    }
 
     if (stream_trigger(STREAM_RAW_CONTROLLER)) {
         //send_message(MSG_SERVO_OUT);
@@ -597,14 +607,6 @@ GCS_MAVLINK_Rover::data_stream_send(void)
     if (stream_trigger(STREAM_RC_CHANNELS)) {
         //send_message(MSG_SERVO_OUTPUT_RAW);
         //send_message(MSG_RADIO_IN);
-    }
-
-    if (gcs().out_of_time()) {
-      return;
-    }
-
-    if (stream_trigger(STREAM_EXTRA1)) {
-        send_message(MSG_ATTITUDE);
     }
 
     if (gcs().out_of_time()) {

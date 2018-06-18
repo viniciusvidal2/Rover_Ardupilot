@@ -45,7 +45,7 @@ Rover rover;
 const AP_Scheduler::Task Rover::scheduler_tasks[] = {
     //         Function name,          Hz,     us,
     SCHED_TASK(modelo_cinematico,      60,   6400),
-    SCHED_TASK(enviando_dados,         20,   6400),
+//    SCHED_TASK(enviando_dados,         20,   6400),
 //    SCHED_TASK(read_radio,             50,   1000),
     SCHED_TASK(ahrs_update,            50,   6400),
     //SCHED_TASK(read_rangefinders,      50,   2000),
@@ -437,9 +437,9 @@ void Rover::modelo_cinematico(void)
     const Vector3f velocidade_gps = gps.velocity();
 
     tempo_integracao = AP_HAL::micros64() - tempo_integracao; // delta de tempo para integrar nesse caso [us]
-    delta_S.x += 100*  velocidade_ekf.y *float(tempo_integracao)*0.000001;
-    delta_S.y += 100*  velocidade_ekf.x *float(tempo_integracao)*0.000001;
-    delta_S.z += 100*(-velocidade_ekf.z)*float(tempo_integracao)*0.000001;
+    delta_S.x = delta_S.x + 100*  velocidade_ekf.y *float(tempo_integracao)*0.000001;
+    delta_S.y = -4.7;//delta_S.y + 100*  velocidade_ekf.x *float(tempo_integracao)*0.000001;
+    delta_S.z = delta_S.z + 100*(-velocidade_ekf.z)*float(tempo_integracao)*0.000001;
     // Renova o tempo de integracao, que esta em microssegundos
     tempo_integracao = AP_HAL::micros64();
 
@@ -450,44 +450,3 @@ void Rover::modelo_cinematico(void)
     // Renova o tempo de integracao, que esta em microssegundos
     tempo_integracao_gps = AP_HAL::micros64();
 }
-
-#define PI_FLOAT     3.14159265f
-#define PIBY2_FLOAT  1.5707963f
-// |error| < 0.005
-float Rover::atan2( float y, float x )
-{
-    if ( x == 0.0f )
-    {
-        if ( y > 0.0f ) return PIBY2_FLOAT;
-        if ( y == 0.0f ) return 0.0f;
-        return -PIBY2_FLOAT;
-    }
-    float atan;
-    float z = y/x;
-    if ( fabs( z ) < 1.0f )
-    {
-        atan = z/(1.0f + 0.28f*z*z);
-        if ( x < 0.0f )
-        {
-            if ( y < 0.0f ) return atan - PI_FLOAT;
-            return atan + PI_FLOAT;
-        }
-    }
-    else
-    {
-        atan = PIBY2_FLOAT - z/(z*z + 0.28f);
-        if ( y < 0.0f ) return atan - PI_FLOAT;
-    }
-    return atan;
-}
-
-float Rover::fabs( float z )
-{
-    if (z >= 0){
-        return z;
-    } else {
-        return (-1)*z;
-    }
-
-}
-
