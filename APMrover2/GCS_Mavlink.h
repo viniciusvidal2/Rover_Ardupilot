@@ -1,6 +1,6 @@
 #pragma once
 
-#include <GCS_MAVLink/GCS.h>
+#include <../libraries/GCS_MAVLink/GCS.h>
 #include <../libraries/AP_Math/AP_Math.h>
 
 // default sensors are present and healthy: gyro, accelerometer, rate_control, attitude_stabilization, yaw_position, altitude control, x/y position control, motor_control
