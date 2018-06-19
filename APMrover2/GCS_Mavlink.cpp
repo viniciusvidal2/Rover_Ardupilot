@@ -115,9 +115,11 @@ void Rover::send_location(mavlink_channel_t chan)
         fix_time = millis();
     }
 //    const Vector3f &vel = gps.velocity();
-    const Vector3f acc = ins.get_accel();
-//    Vector3f vel2;
-//    ins.get_delta_velocity(vel2);
+    const Vector3f &acc = ahrs.get_accel_ef_blended();
+//    Location &pos;
+//    ahrs.get_position(pos);
+    Vector3f vel2;
+    ahrs.get_velocity_NED(vel2);
     mavlink_msg_global_position_int_send(
         chan,
         fix_time,
@@ -125,8 +127,8 @@ void Rover::send_location(mavlink_channel_t chan)
         current_loc.lng,                    // in 1E7 degrees
         current_loc.alt * 10UL,             // millimeters above sea level
         (current_loc.alt - home.alt) * 10,  // millimeters above home
-        acc.x*10000.0f/GRAVITY_MSS, // delta_S.x, // vel.x * 100,   // X speed cm/s (+ve North)
-        acc.y*10000.0f/GRAVITY_MSS, //delta_S.y*1000, // vel.y * 100,   // Y speed cm/s (+ve East)
+        vel2.x*10000.0f/GRAVITY_MSS, // delta_S.x, // vel.x * 100,   // X speed cm/s (+ve North)
+        vel2.y*10000.0f/GRAVITY_MSS, //delta_S.y*1000, // vel.y * 100,   // Y speed cm/s (+ve East)
         acc.z*10000.0f/GRAVITY_MSS, //delta_S.z*1000, // vel.z * -100,  // Z speed cm/s (+ve up)
         ahrs.yaw_sensor);
 }
@@ -172,11 +174,6 @@ void Rover::send_servo_out(mavlink_channel_t chan)
 
 void Rover::send_vfr_hud(mavlink_channel_t chan)
 {
-//    float angulo_certo_pelo_gps_mostrar_qground = 0;
-//    if(angulo_atual < 327.0f)
-//        angulo_certo_pelo_gps_mostrar_qground = angulo_atual*100.0f+43.0f;
-//    else
-//        angulo_certo_pelo_gps_mostrar_qground = (angulo_atual-650.0f)*100.0+43.0f;
     mavlink_msg_vfr_hud_send(
         chan,
         gps.ground_speed(),                          // VINICIUS

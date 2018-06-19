@@ -44,7 +44,7 @@ Rover rover;
 */
 const AP_Scheduler::Task Rover::scheduler_tasks[] = {
     //         Function name,          Hz,     us,
-    SCHED_TASK(modelo_cinematico,      60,   6400),
+//    SCHED_TASK(modelo_cinematico,      60,   6400),
 //    SCHED_TASK(enviando_dados,         20,   6400),
 //    SCHED_TASK(read_radio,             50,   1000),
     SCHED_TASK(ahrs_update,            50,   6400),
@@ -189,6 +189,9 @@ void Rover::ahrs_update()
     } else if (gps.status() >= AP_GPS::GPS_OK_FIX_3D) {
         ground_speed = ahrs.groundspeed();
     }
+
+    // CHAMAR AQUI A FUNCAO QUE ATUALIZA O MODELO CINEMATICO LOGO APOS ATUALIZAR LEITURAS - VINICIUS
+    modelo_cinematico();
 
     if (should_log(MASK_LOG_ATTITUDE_FAST)) {
         Log_Write_Attitude();
