@@ -624,7 +624,8 @@ bool AP_AHRS_NavEKF::have_inertial_nav(void) const
 // order. Must only be called if have_inertial_nav() is true
 bool AP_AHRS_NavEKF::get_velocity_NED(Vector3f &vec) const
 {
-    switch (active_EKF_type()) {
+    switch (EKF_TYPE2) { // VINICIUS
+//    switch (active_EKF_type()) {
     case EKF_TYPE_NONE:
         return false;
 

@@ -115,7 +115,7 @@ void Rover::send_location(mavlink_channel_t chan)
         fix_time = millis();
     }
 //    const Vector3f &vel = gps.velocity();
-    const Vector3f &acc = ahrs.get_accel_ef_blended();
+//    const Vector3f &acc = ahrs.get_accel_ef_blended();
 //    Location &pos;
 //    ahrs.get_position(pos);
     Vector3f vel2;
@@ -127,9 +127,9 @@ void Rover::send_location(mavlink_channel_t chan)
         current_loc.lng,                    // in 1E7 degrees
         current_loc.alt * 10UL,             // millimeters above sea level
         (current_loc.alt - home.alt) * 10,  // millimeters above home
-        vel2.x*10000.0f/GRAVITY_MSS, // delta_S.x, // vel.x * 100,   // X speed cm/s (+ve North)
-        vel2.y*10000.0f/GRAVITY_MSS, //delta_S.y*1000, // vel.y * 100,   // Y speed cm/s (+ve East)
-        acc.z*10000.0f/GRAVITY_MSS, //delta_S.z*1000, // vel.z * -100,  // Z speed cm/s (+ve up)
+        delta_S.x*10000.0f, // vel.x * 100,   // X speed cm/s (+ve North)
+        delta_S.y*10000.0f, // vel.y * 100,   // Y speed cm/s (+ve East)
+        delta_S.z*10000.0f, // vel.z * -100,  // Z speed cm/s (+ve up)
         ahrs.yaw_sensor);
 }
 

@@ -435,14 +435,18 @@ void Rover::modelo_cinematico(void)
     ///           |                        |
     ///         D X --> E               Z  o --> X
     ///
-    Vector3f velocidade_ekf; // [cm]
+    Vector3f velocidade_ekf; // [cm/s]
     ahrs.get_velocity_NED(velocidade_ekf); // Aqui pega em metros, portanto calcula para centimetros abaixo
     const Vector3f velocidade_gps = gps.velocity();
 
     tempo_integracao = AP_HAL::micros64() - tempo_integracao; // delta de tempo para integrar nesse caso [us]
-    delta_S.x = delta_S.x + 100*  velocidade_ekf.y *float(tempo_integracao)*0.000001;
-    delta_S.y = -4.7;//delta_S.y + 100*  velocidade_ekf.x *float(tempo_integracao)*0.000001;
-    delta_S.z = delta_S.z + 100*(-velocidade_ekf.z)*float(tempo_integracao)*0.000001;
+    // Integracao simples. Conversao no meio para int a fim de filtrar ruidos a partir de decimos de centimetro
+    if(abs(int(100*(-velocidade_ekf.x))) > 2)
+        delta_S.x = delta_S.x + float(int(100*  velocidade_ekf.y ))*float(tempo_integracao)*0.000001;
+    if(abs(int(100*(-velocidade_ekf.y))) > 3)
+        delta_S.y = delta_S.y + float(int(100*  velocidade_ekf.x ))*float(tempo_integracao)*0.000001;
+    if(abs(int(100*(-velocidade_ekf.z))) > 6)
+        delta_S.z = delta_S.z + float(int(100*(-velocidade_ekf.z)))*float(tempo_integracao)*0.000001;
     // Renova o tempo de integracao, que esta em microssegundos
     tempo_integracao = AP_HAL::micros64();
 
