@@ -113,10 +113,13 @@ void Rover::setup()
     scheduler.init(&scheduler_tasks[0], ARRAY_SIZE(scheduler_tasks));
 
     // Vinicius - iniciar variaveis de posicao
-    delta_S.x = 0; delta_S.y = 0; delta_S.z = 0;
-    delta_S_gps.x = 0; delta_S_gps.y = 0; delta_S_gps.z = 0;
+    delta_S.zero();
+    delta_S.zero();
     tempo_integracao = AP_HAL::micros64();
     tempo_integracao_gps = AP_HAL::micros64();
+    amx.reserve(3); amy.reserve(3); amz.reserve(3);
+    ac_media_x = 0; ac_media_y = 0; ac_media_z = 0;
+    V.zero(); V_last.zero();
 }
 
 /*
@@ -433,19 +436,33 @@ void Rover::modelo_cinematico(void)
     ///       Velocidade                Posicao           Falamos do
     ///           ^ N                      ^ Y            FRAME INERCIAL
     ///           |                        |
-    ///         D X --> E               Z  o --> X
+    ///         D X --> E                Z o --> X
     ///
+
+
+    // ACELERACAO
+    Vector3f acc = ahrs.get_accel_ef_blended(); // Aceleracoes instantaneas vindas do DCM
+    adjust_moving_average(acc, amx, amy, amz, ac_media_x, ac_media_y, ac_media_z);
+    // TEMPO DA PARADA
+    tempo_integracao = AP_HAL::micros64() - tempo_integracao; // delta de tempo para integrar nesse caso [us]
+    // VELOCIDADE
+    V.x = V_last.x + 100.0f*ac_media_x*float(tempo_integracao)*0.000001; // [cm/s]
+    V.y = V_last.y + 100.0f*ac_media_y*float(tempo_integracao)*0.000001; // [cm/s]
+    V.z = V_last.z + 100.0f*ac_media_z*float(tempo_integracao)*0.000001; // [cm/s]
+
+
+
     Vector3f velocidade_ekf; // [cm/s]
     ahrs.get_velocity_NED(velocidade_ekf); // Aqui pega em metros, portanto calcula para centimetros abaixo
     const Vector3f velocidade_gps = gps.velocity();
 
-    tempo_integracao = AP_HAL::micros64() - tempo_integracao; // delta de tempo para integrar nesse caso [us]
+//    tempo_integracao = AP_HAL::micros64() - tempo_integracao; // delta de tempo para integrar nesse caso [us]
     // Integracao simples. Conversao no meio para int a fim de filtrar ruidos a partir de decimos de centimetro
-    if(abs(int(100*(-velocidade_ekf.x))) > 2)
+    if(abs(int(100*(velocidade_ekf.y))) > 2)
         delta_S.x = delta_S.x + float(int(100*  velocidade_ekf.y ))*float(tempo_integracao)*0.000001;
-    if(abs(int(100*(-velocidade_ekf.y))) > 3)
+    if(abs(int(100*(velocidade_ekf.x))) > 3)
         delta_S.y = delta_S.y + float(int(100*  velocidade_ekf.x ))*float(tempo_integracao)*0.000001;
-    if(abs(int(100*(-velocidade_ekf.z))) > 6)
+    if(abs(int(100*(velocidade_ekf.z))) > 6)
         delta_S.z = delta_S.z + float(int(100*(-velocidade_ekf.z)))*float(tempo_integracao)*0.000001;
     // Renova o tempo de integracao, que esta em microssegundos
     tempo_integracao = AP_HAL::micros64();
@@ -456,4 +473,35 @@ void Rover::modelo_cinematico(void)
     delta_S_gps.z += 100*(-velocidade_gps.z)*float(tempo_integracao_gps)*0.000001;
     // Renova o tempo de integracao, que esta em microssegundos
     tempo_integracao_gps = AP_HAL::micros64();
+}
+
+void Rover::adjust_moving_average(Vector3f &_acc, std::vector<float> &_amx, std::vector<float> &_amy, std::vector<float> &_amz,
+                                  float &_ax, float &_ay, float &_az){
+    float sum = 0;
+    //////////////// X
+    for(uint32_t i=0; i < _amx.size()-1; i++){
+        _amx.data()[i+1] = _amx.data()[i];
+        sum += _amx.data()[i];
+    }
+    _amx.data()[0] = _acc.x;
+    sum += _acc.x;
+    _ax = sum/_amx.size(); // media sobre o vetor acumulador
+    //////////////// Y
+    sum = 0;
+    for(uint32_t i=0; i < _amy.size()-1; i++){
+        _amy.data()[i+1] = _amy.data()[i];
+        sum += _amy.data()[i];
+    }
+    _amy.data()[0] = _acc.y;
+    sum += _acc.y;
+    _ay = sum/_amy.size(); // media sobre o vetor acumulador
+    //////////////// Z
+    sum = 0;
+    for(uint32_t i=0; i < _amz.size()-1; i++){
+        _amz.data()[i+1] = _amz.data()[i];
+        sum += _amz.data()[i];
+    }
+    _amz.data()[0] = _acc.z;
+    sum += _acc.z;
+    _az = sum/_amz.size(); // media sobre o vetor acumulador
 }

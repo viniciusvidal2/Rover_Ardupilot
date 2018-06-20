@@ -19,6 +19,7 @@
 
 #include <cmath>
 #include <stdarg.h>
+#include <vector>
 
 // Libraries
 #include <../libraries/AP_Common/AP_Common.h>
@@ -398,10 +399,15 @@ private:
     ////////////////////////////////////////////////////////////////////
     /// VINICIUS - dados para posicao
     ///
-    Vector3f delta_S;              // Translacao atual (X, Y, Z)     [cm]
-    Vector3f delta_S_gps;          // Translacao atual (X, Y, Z) GPS [cm]
-    uint64_t tempo_integracao;     // Tempo que passou para inetgrar a velocidade
-    uint64_t tempo_integracao_gps; // Tempo que passou para inetgrar a velocidade
+    Vector3f delta_S;                         // Translacao atual (X, Y, Z)     [cm]
+    Vector3f delta_S_gps;                     // Translacao atual (X, Y, Z) GPS [cm]
+    uint64_t tempo_integracao;                // Tempo que passou para inetgrar a velocidade [us]
+    uint64_t tempo_integracao_gps;            // Tempo que passou para inetgrar a velocidade [us]
+    std::vector<float> amx;                   // Media movel sobre leituras do acelerometro [m/s^2]
+    std::vector<float> amy;                   // Media movel sobre leituras do acelerometro [m/s^2]
+    std::vector<float> amz;                   // Media movel sobre leituras do acelerometro [m/s^2]
+    float ac_media_x, ac_media_y, ac_media_z; // Aceleracao media naquele instante [m/s^2]
+    Vector3f V, V_last;                       // Velocidade instantanea e da iteracao anterior, para integrar pot Tustin [cm/s]
     ////////////////////////////////////////////////////////////////////
 
 private:
@@ -597,8 +603,7 @@ public:
     // Vinicius
     void enviando_dados();
     void modelo_cinematico(void);
-    float atan2(float y, float x);
-    float fabs(float z);
+    void adjust_moving_average(Vector3f &_acc, std::vector<float> &_amx, std::vector<float> &_amy, std::vector<float> &_amz, float &_ax, float &_ay, float &_az);
 };
 
 extern const AP_HAL::HAL& hal;
