@@ -449,7 +449,7 @@ void Rover::obter_bearing_correto(void)
 
     if (mission.num_commands() > 0 && gps.status() >= AP_GPS::GPS_OK_FIX_3D) // Se ha missao alem do home
     {
-        int contador = 2; // Pula o 0, que eh o HOME, e 1 que e o takeoff no linux e qgroundcontrol (assim imagino)
+        int contador = 1; // Pula o 0, que eh o HOME, e 1 que e o takeoff no linux e qgroundcontrol (assim imagino)
         estamos_dentro = false;
         while (!estamos_dentro && contador <= mission.num_commands()) // Enquanto nao encontramos algum ponto que estejamos muito proximos dentre todos
         {
@@ -485,6 +485,7 @@ void Rover::obter_bearing_correto(void)
         // A altitude do waypoint esta em centimetros, a altura atual tambem, entao levar a distancia ao waypoint para centimetros antes de tirar tangente
         angulo_pitch_altura = atan2((float)(temp_cmd.content.location.alt - (float)g.altura_carro), (float)distancia_controlada*100); // Angulo de pitch sobre a altura do poste
         angulo_proximo_wp = degrees( atan2(ponto_alvo.lng-current_loc.lng, ponto_alvo.lat-current_loc.lat) );
+        angulo_proximo_wp = (angulo_proximo_wp < 0) ? angulo_proximo_wp + 360.0f : angulo_proximo_wp;
 //        angulo_proximo_wp = get_bearing_cd(current_loc, ponto_alvo); // Aqui estamos apontando para o waypoint e enviando para o servo
     }
 }
