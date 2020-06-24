@@ -425,23 +425,17 @@ void Rover::obter_bearing_correto(void)
     // OBS: cuidado, no roteador, com as unidades dos angulos
 
     // Inicialmente lemos da bussola, caso aceite a condicao usamos GPS
-    angulo_atual = (ahrs.yaw_sensor/100) % 360;
     angulo_pitch_altura = 0; // Manter horizontal
-//    // Condicao de GPS
-//    const Vector3f &vel = gps.velocity();
-//    if((uint16_t)gps.ground_speed_cm() > g2.wp_speed*100 && gps.is_healthy() && gps.status() >= AP_GPS::GPS_OK_FIX_3D){ // COloquei vel_min_gps na mao
-//        // Eixo X aponta norte positivo, eixo Y aponta leste positivo; norte seria 0 graus, positivo sentido horario
-//        angulo_atual = (atan2(vel.y, vel.x) >= 0) ? atan2(vel.y, vel.x) : atan2(vel.y, vel.x)+2*M_PI; // [RAD]
-//        angulo_atual = (int32_t)degrees(angulo_atual);
-//        //angulo_atual = 2.5f;
-//    }
 
-    Vector3f velocidade_ekf;
-    ahrs.get_velocity_NED(velocidade_ekf);
-    if((uint16_t)gps.ground_speed_cm() > g2.wp_speed*100 && gps.is_healthy() && gps.status() >= AP_GPS::GPS_OK_FIX_3D){ // COloquei vel_min_gps na mao
+//    Vector3f velocidade_ekf;
+    const Vector3f &velocidade_ekf = gps.velocity();
+    //ahrs.get_velocity_NED(velocidade_ekf);
+    if((uint16_t)gps.ground_speed_cm() > 1*100 && gps.is_healthy() && gps.status() >= AP_GPS::GPS_OK_FIX_3D){ // COloquei vel_min_gps na mao
         // Eixo X aponta norte positivo, eixo Y aponta leste positivo; norte seria 0 graus, positivo sentido horario
-        angulo_atual = degrees((atan2(velocidade_ekf.y, velocidade_ekf.x) > 0 ? atan2(velocidade_ekf.y, velocidade_ekf.x) : atan2(velocidade_ekf.y, velocidade_ekf.x) + 2*M_PI)); // [DEGREES]
-//        angulo_atual = degrees(angulo_atual);
+        angulo_atual = 100.0f*atan2(velocidade_ekf.y, velocidade_ekf.x);
+        //angulo_atual = (angulo_atual > 0) ? angulo_atual : angulo_atual + 100*2*M_PI; // [RAD]
+    } else {
+        angulo_atual = (ahrs.yaw_sensor) % 360 *M_PI/180;
     }
 
     // Procurando algum ponto que estejamos dentro
@@ -471,7 +465,6 @@ void Rover::obter_bearing_correto(void)
             contador++;
         }
     } else {
-//        angulo_atual = (ahrs.yaw_sensor/100) % 360;
         angulo_proximo_wp = angulo_atual; // Aqui faz entao apontar pra frente, por desencargo [DEGREES]
         angulo_pitch_altura = 0; // Manter horizontal
     }
@@ -484,9 +477,8 @@ void Rover::obter_bearing_correto(void)
     } else { // Aqui entramos no raio de acao, variaveis desejadas atualizadas
         // A altitude do waypoint esta em centimetros, a altura atual tambem, entao levar a distancia ao waypoint para centimetros antes de tirar tangente
         angulo_pitch_altura = atan2((float)(temp_cmd.content.location.alt - (float)g.altura_carro), (float)distancia_controlada*100); // Angulo de pitch sobre a altura do poste
-        angulo_proximo_wp = degrees( atan2(ponto_alvo.lng-current_loc.lng, ponto_alvo.lat-current_loc.lat) );
-        angulo_proximo_wp = (angulo_proximo_wp < 0) ? angulo_proximo_wp + 360.0f : angulo_proximo_wp;
-//        angulo_proximo_wp = get_bearing_cd(current_loc, ponto_alvo); // Aqui estamos apontando para o waypoint e enviando para o servo
+        angulo_proximo_wp = 100*( atan2(ponto_alvo.lng-current_loc.lng, ponto_alvo.lat-current_loc.lat) );
+        angulo_proximo_wp = (angulo_proximo_wp < 0) ? angulo_proximo_wp + 100*2*M_PI : angulo_proximo_wp;
     }
 }
 
